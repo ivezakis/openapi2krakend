@@ -1,5 +1,5 @@
-import json
 import argparse
+import json
 from pathlib import Path
 
 
@@ -9,7 +9,6 @@ class Endpoint:
         endpoint,
         method,
         output_encoding,
-        timeout,
         extra_config,
         input_query_strings,
         backend,
@@ -18,7 +17,6 @@ class Endpoint:
         self.endpoint = endpoint
         self.method = method
         self.output_encoding = output_encoding
-        self.timeout = timeout
         self.extra_config = extra_config
         self.input_query_strings = input_query_strings
         self.backend = (backend,)
@@ -27,7 +25,7 @@ class Endpoint:
 
 class Backend:
     def __init__(
-        self, url_pattern, encoding, method, is_collection, host, disable_host_sanitize
+        self, url_pattern, encoding, method, is_collection, host
     ):
         self.url_pattern = url_pattern
         self.encoding = encoding
@@ -35,7 +33,6 @@ class Backend:
         if is_collection:
             self.is_collection = is_collection
         self.host = host
-        self.disable_host_sanitize = disable_host_sanitize
 
 
 if __name__ == "__main__":
@@ -70,6 +67,15 @@ if __name__ == "__main__":
                         if ("application/json" in openapi["paths"][path][method]["responses"]["200"]["content"]):
                             encoding = "json"
                             output_encoding = "json"
+                            if ("schema" in openapi["paths"][path][method]["responses"]["200"]["content"]["application/json"]):
+                                if ("type" in openapi["paths"][path][method]["responses"]["200"]["content"]["application/json"]["schema"]):
+                                    if (openapi["paths"][path][method]["responses"]["200"]["content"]["application/json"]["schema"]["type"] == "array"):
+                                        is_collection = True
+                                        encoding = "json"
+                                        output_encoding = "json-collection"
+                                    elif (openapi["paths"][path][method]["responses"]["200"]["content"]["application/json"]["schema"]["type"] == "string"):
+                                        encoding = "string"
+                                        output_encoding = "string"
                         if ("application/xml" in openapi["paths"][path][method]["responses"]["200"]["content"]):
                             encoding = "xml"
                             output_encoding = "json"
@@ -82,14 +88,13 @@ if __name__ == "__main__":
                                         output_encoding = "json-collection"
                                     elif (openapi["paths"][path][method]["responses"]["200"]["content"]["*/*"]["schema"]["type"] == "string"):
                                         encoding = "string"
-                                        output_encoding = "json"
+                                        output_encoding = "string"
 
             endpoints.append(
                 Endpoint(
                     endpoint=path,
                     method=method.upper(),
                     output_encoding=output_encoding,
-                    timeout="30s",
                     extra_config={},
                     input_query_strings=["*"],
                     backend=Backend(
@@ -98,7 +103,6 @@ if __name__ == "__main__":
                         method=method.upper(),
                         is_collection=is_collection,
                         host=host,
-                        disable_host_sanitize=False,
                     ),
                     input_headers=["*"],
                 )
