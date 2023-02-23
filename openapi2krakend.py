@@ -16,7 +16,8 @@ class Endpoint:
     ):
         self.endpoint = endpoint
         self.method = method
-        self.output_encoding = output_encoding
+        if self.output_encoding or self.output_encoding != "json":
+            self.output_encoding = output_encoding
         self.extra_config = extra_config
         self.input_query_strings = input_query_strings
         self.backend = (backend,)
@@ -28,7 +29,8 @@ class Backend:
         self, url_pattern, encoding, method, is_collection, host
     ):
         self.url_pattern = url_pattern
-        self.encoding = encoding
+        if self.encoding or self.encoding != "json":
+            self.encoding = encoding
         self.method = method
         if is_collection:
             self.is_collection = is_collection
