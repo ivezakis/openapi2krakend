@@ -16,7 +16,7 @@ class Endpoint:
     ):
         self.endpoint = endpoint
         self.method = method
-        if self.output_encoding or self.output_encoding != "json":
+        if output_encoding and output_encoding != "json":
             self.output_encoding = output_encoding
         self.extra_config = extra_config
         self.input_query_strings = input_query_strings
@@ -29,7 +29,7 @@ class Backend:
         self, url_pattern, encoding, method, is_collection, host
     ):
         self.url_pattern = url_pattern
-        if self.encoding or self.encoding != "json":
+        if encoding and encoding != "json":
             self.encoding = encoding
         self.method = method
         if is_collection:
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 
     for path in openapi["paths"]:
         for method in openapi["paths"][path]:
-            output_encoding = "no-op"
-            encoding = "no-op"
+            output_encoding = "json"
+            encoding = "json"
             is_collection = False
             if ("responses" in openapi["paths"][path][method]):
                 for r in range(200, 205):
@@ -69,26 +69,21 @@ if __name__ == "__main__":
                     if (response_code in openapi["paths"][path][method]["responses"]):
                         if ("content" in openapi["paths"][path][method]["responses"][response_code]):
                             if ("application/json" in openapi["paths"][path][method]["responses"][response_code]["content"]):
-                                encoding = "json"
-                                output_encoding = "json"
                                 if ("schema" in openapi["paths"][path][method]["responses"][response_code]["content"]["application/json"]):
                                     if ("type" in openapi["paths"][path][method]["responses"][response_code]["content"]["application/json"]["schema"]):
                                         if (openapi["paths"][path][method]["responses"][response_code]["content"]["application/json"]["schema"]["type"] == "array"):
                                             is_collection = True
-                                            encoding = "json"
                                             output_encoding = "json-collection"
                                         elif (openapi["paths"][path][method]["responses"][response_code]["content"]["application/json"]["schema"]["type"] == "string"):
                                             encoding = "string"
                                             output_encoding = "string"
                             if ("application/xml" in openapi["paths"][path][method]["responses"][response_code]["content"]):
                                 encoding = "xml"
-                                output_encoding = "json"
                             if ("*/*" in openapi["paths"][path][method]["responses"][response_code]["content"]):
                                 if ("schema" in openapi["paths"][path][method]["responses"][response_code]["content"]["*/*"]):
                                     if ("type" in openapi["paths"][path][method]["responses"][response_code]["content"]["*/*"]["schema"]):
                                         if (openapi["paths"][path][method]["responses"][response_code]["content"]["*/*"]["schema"]["type"] == "array"):
                                             is_collection = True
-                                            encoding = "json"
                                             output_encoding = "json-collection"
                                         elif (openapi["paths"][path][method]["responses"][response_code]["content"]["*/*"]["schema"]["type"] == "string"):
                                             encoding = "string"
